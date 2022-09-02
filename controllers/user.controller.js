@@ -10,7 +10,8 @@ module.exports.getRandomUser = (req, res, next) => {
 
 module.exports.getAllUsers = (req, res, next) => {
     let users = fs.readFileSync(usersDir);
-    res.send(users)
+    let parsedUsers = JSON.parse(users);
+    res.send(parsedUsers)
 }
 module.exports.postSaveUser = (req, res, next) => {
     let users = fs.readFileSync(usersDir);
