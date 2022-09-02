@@ -11,17 +11,23 @@ module.exports.getRandomUser = (req, res, next) => {
 module.exports.getAllUsers = (req, res, next) => {
     let users = fs.readFileSync(usersDir);
     let parsedUsers = JSON.parse(users);
-    res.send(parsedUsers)
+    let limit = req.query.limit;
+    console.log(typeof limit, limit)
+    if (limit) {
+        res.send(parsedUsers.slice(0, limit))
+    } else res.send(parsedUsers);
 }
 module.exports.postSaveUser = (req, res, next) => {
     let users = fs.readFileSync(usersDir);
     let parsedUsers = JSON.parse(users);
     const lastId = parsedUsers[parsedUsers.length - 1].id;
     const user = req.body;
-    user.id = lastId + 1;
-    parsedUsers.push(user);
-    fs.writeFileSync(usersDir, JSON.stringify(parsedUsers))
-    res.send(user)
+    if (user.gender && user.name && user.contact && user.address && user.photoUrl) {
+        user.id = lastId + 1;
+        parsedUsers.push(user);
+        fs.writeFileSync(usersDir, JSON.stringify(parsedUsers))
+        res.send(user)
+    } else res.send('Please Provide All the required data!')
 }
 module.exports.patchUpdateUser = (req, res, next) => {
     const user = req.body;
@@ -32,7 +38,7 @@ module.exports.patchUpdateUser = (req, res, next) => {
         Object.assign(parsedUsers[userIndex], user);
         fs.writeFileSync(usersDir, JSON.stringify(parsedUsers))
         res.send(parsedUsers[userIndex]);
-    } else res.send('Wrong User ID')
+    } else res.send('Wrong User ID, Provide a valid User ID')
 }
 module.exports.patchBulkUpdateUser = (req, res, next) => {
     const bulkUser = req.body;
@@ -54,7 +60,11 @@ module.exports.deleteUser = (req, res, next) => {
     let users = fs.readFileSync(usersDir);
     let parsedUsers = JSON.parse(users);
     const { id } = req.body;
-    const remainingUsers = parsedUsers.filter(user => user.id !== id);
-    fs.writeFileSync(usersDir, JSON.stringify(remainingUsers))
-    res.send(remainingUsers)
+    if (id) {
+        const remainingUsers = parsedUsers.filter(user => user.id !== id);
+        fs.writeFileSync(usersDir, JSON.stringify(remainingUsers))
+        res.send({ success: "Deleted", remainingUsers })
+    } else {
+        res.send('Wrong User ID, Provide a valid User ID')
+    }
 }
